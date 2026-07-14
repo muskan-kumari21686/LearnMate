@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}Skill Assessment — LearnMate{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="mb-4">
+    <h4 class="fw-800 mb-1"><i class="bi bi-patch-check-fill me-2 text-orange"></i>Skill Assessment</h4>
+    <p class="text-muted mb-0">Test your knowledge and get personalised feedback from AI</p>
+  </div>
+
+  <!-- Domain Selection -->
+  <div class="lm-card p-4 mb-4" id="domainSelector">
+    <h6 class="fw-700 mb-3">Choose a Domain to Assess</h6>
+    <div class="row g-3">
+      {% for domain in domains %}
+      {% set icons = {"Python": "bi-filetype-py", "Machine Learning": "bi-graph-up-arrow", "Web Development": "bi-code-slash", "Data Science": "bi-bar-chart-fill", "Cloud Computing": "bi-cloud-fill", "Cybersecurity": "bi-shield-fill-check"} %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <button class="btn lm-domain-btn w-100 lm-start-quiz" data-domain="{{ domain }}">
+          <i class="bi {{ icons.get(domain, 'bi-book-fill') }} fs-3 mb-2"></i>
+          <div class="fw-600">{{ domain }}</div>
+          <div class="small text-muted">5 questions</div>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Quiz Area (hidden by default) -->
+  <div class="lm-card p-4 mb-4 d-none" id="quizArea">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h6 class="fw-700 mb-0" id="quizDomainTitle"></h6>
+        <small class="text-muted" id="quizProgress"></small>
+      </div>
+      <button class="btn lm-btn-outline btn-sm" id="backToDomains">
+        <i class="bi bi-arrow-left me-1"></i>Back
+      </button>
+    </div>
+    <!-- Progress bar -->
+    <div class="progress lm-progress-bar mb-4">
+      <div class="progress-bar lm-progress-fill" id="quizProgressBar" style="width:0%"></div>
+    </div>
+    <!-- Question container -->
+    <div id="questionContainer"></div>
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between mt-4">
+      <button class="btn lm-btn-outline" id="prevQuestionBtn" disabled>
+        <i class="bi bi-arrow-left me-1"></i>Previous
+      </button>
+      <button class="btn lm-btn-primary" id="nextQuestionBtn">
+        Next <i class="bi bi-arrow-right ms-1"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Results Area (hidden by default) -->
+  <div class="lm-card p-4 mb-4 d-none" id="resultsArea">
+    <div class="text-center mb-4">
+      <div class="lm-score-circle" id="scoreCircle"></div>
+      <h5 class="fw-800 mt-3" id="resultLevel"></h5>
+      <p class="text-muted" id="resultSubtext"></p>
+      <span class="badge lm-badge-xp">+50 XP Earned!</span>
+    </div>
+    <div class="lm-ai-feedback mb-4" id="aiFeedback">
+      <div class="lm-ai-feedback-header"><i class="bi bi-robot me-2"></i>AI Feedback</div>
+      <div class="lm-ai-feedback-body" id="feedbackContent"></div>
+    </div>
+    <div class="mb-4" id="detailedResults"></div>
+    <div class="d-flex gap-2 justify-content-center flex-wrap">
+      <button class="btn lm-btn-primary" id="retakeBtn">
+        <i class="bi bi-arrow-clockwise me-1"></i>Retake Assessment
+      </button>
+      <a href="{{ url_for('roadmap.roadmap') }}" class="btn lm-btn-outline">
+        <i class="bi bi-map-fill me-1"></i>View Roadmap
+      </a>
+      <a href="{{ url_for('chat.chat') }}" class="btn lm-btn-outline">
+        <i class="bi bi-chat-dots-fill me-1"></i>Ask AI Tutor
+      </a>
+    </div>
+  </div>
+
+  <!-- Past Assessments -->
+  {% if past_assessments %}
+  <div class="lm-card">
+    <div class="lm-card-header">
+      <h6 class="mb-0 fw-700"><i class="bi bi-clock-history me-2"></i>Past Assessments</h6>
+    </div>
+    <div class="lm-card-body">
+      {% for a in past_assessments %}
+      <div class="lm-activity-item">
+        <div class="lm-activity-icon lm-icon-{% if a.skill_level == 'advanced' %}green{% elif a.skill_level == 'intermediate' %}blue{% else %}orange{% endif %}">
+          <i class="bi bi-patch-check-fill"></i>
+        </div>
+        <div class="lm-activity-info">
+          <div class="fw-600">{{ a.domain }}</div>
+          <div class="text-muted small">{{ a.taken_at.strftime('%b %d, %Y') }}</div>
+        </div>
+        <div class="text-end">
+          <div class="fw-700 text-accent">{{ a.score }}%</div>
+          <div class="small text-muted">{{ a.skill_level|title }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

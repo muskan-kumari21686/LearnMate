@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}LearnMate — Your AI Learning Companion{% endblock %}
+{% block content %}
+<!-- Hero Section -->
+<section class="lm-hero">
+  <div class="lm-hero-bg"></div>
+  <div class="container text-center lm-hero-content">
+    <div class="lm-hero-badge mb-3 animate-fade-up">
+      <i class="bi bi-stars me-1 text-warning"></i>
+      Powered by IBM watsonx.ai
+    </div>
+    <h1 class="lm-hero-title animate-fade-up delay-1">
+      Learn Smarter with<br><span class="text-gradient">AI-Powered</span> Guidance
+    </h1>
+    <p class="lm-hero-sub animate-fade-up delay-2">
+      LearnMate creates personalised learning roadmaps, recommends the best courses,
+      and adapts to your goals in real time — your dedicated AI study companion.
+    </p>
+    <div class="d-flex gap-3 justify-content-center animate-fade-up delay-3">
+      <a href="{{ url_for('auth.register') }}" class="btn lm-btn-primary btn-lg px-5">
+        <i class="bi bi-rocket-takeoff me-2"></i>Get Started Free
+      </a>
+      <a href="{{ url_for('auth.login') }}" class="btn lm-btn-outline btn-lg px-5">
+        <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 lm-features-section">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="fw-800 fs-1">Everything You Need to Succeed</h2>
+      <p class="text-muted fs-5">One platform. Infinite possibilities.</p>
+    </div>
+    <div class="row g-4">
+      {% set features = [
+        ("bi-chat-dots-fill", "AI Chat Assistant", "Chat with your AI tutor 24/7. Ask anything about courses, career paths, or learning strategies.", "accent"),
+        ("bi-map-fill", "Personalised Roadmaps", "Get a custom learning path from beginner to expert, tailored to your career goals and learning style.", "purple"),
+        ("bi-collection-play-fill", "Course Recommendations", "Discover the best courses from Coursera, edX, Udemy, and more — curated just for you.", "green"),
+        ("bi-patch-check-fill", "Skill Assessment", "Take interactive quizzes to assess your current level and receive targeted improvement guidance.", "orange"),
+        ("bi-graph-up-arrow", "Progress Tracking", "Monitor your learning journey with XP rewards, streaks, badges, and detailed progress metrics.", "blue"),
+        ("bi-briefcase-fill", "Career Guidance", "Get job-ready with portfolio advice, interview tips, and industry insights for your chosen field.", "red"),
+      ] %}
+      {% for icon, title, desc, color in features %}
+      <div class="col-md-6 col-lg-4">
+        <div class="lm-feature-card h-100 animate-slide-up">
+          <div class="lm-feature-icon lm-icon-{{ color }}">
+            <i class="bi {{ icon }}"></i>
+          </div>
+          <h5 class="fw-700 mt-3 mb-2">{{ title }}</h5>
+          <p class="text-muted mb-0">{{ desc }}</p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="lm-stats-section py-5">
+  <div class="container">
+    <div class="row g-4 text-center">
+      {% for num, label, icon in [("18+", "Sample Courses", "bi-collection-play"), ("6+", "Tech Domains", "bi-grid"), ("5", "Skill Levels", "bi-bar-chart"), ("24/7", "AI Support", "bi-robot")] %}
+      <div class="col-6 col-md-3">
+        <div class="lm-stat-card">
+          <i class="bi {{ icon }} fs-2 text-accent mb-2"></i>
+          <div class="lm-stat-num">{{ num }}</div>
+          <div class="text-muted">{{ label }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="lm-cta-section py-5 text-center">
+  <div class="container">
+    <h2 class="fw-800 fs-1 mb-3">Ready to Transform Your Learning?</h2>
+    <p class="text-muted fs-5 mb-4">Join LearnMate today and get your personalised AI learning roadmap in minutes.</p>
+    <a href="{{ url_for('auth.register') }}" class="btn lm-btn-primary btn-lg px-5">
+      <i class="bi bi-person-plus-fill me-2"></i>Create Free Account
+    </a>
+  </div>
+</section>
+
+<footer class="lm-footer text-center py-4">
+  <small class="text-muted">© 2024 LearnMate · Powered by IBM watsonx.ai · Built with ❤️</small>
+</footer>
+{% endblock %}

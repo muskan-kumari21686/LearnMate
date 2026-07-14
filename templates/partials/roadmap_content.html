@@ -1,0 +1,113 @@
+<!-- Roadmap Content Partial — used in roadmap.html and injected via JS -->
+<div class="lm-roadmap-header mb-4">
+  <h3 class="fw-800">{{ roadmap.title }}</h3>
+  <p class="text-muted"><i class="bi bi-bullseye me-1"></i>Goal: <strong>{{ roadmap.career_goal }}</strong></p>
+  <div class="d-flex gap-3 flex-wrap">
+    <span class="lm-meta-badge"><i class="bi bi-calendar3 me-1"></i>{{ roadmap.total_estimated_weeks }} weeks total</span>
+    <span class="lm-meta-badge"><i class="bi bi-layers me-1"></i>{{ roadmap.stages|length }} stages</span>
+  </div>
+</div>
+
+<!-- Stages Timeline -->
+<div class="lm-roadmap-stages">
+  {% for stage in roadmap.stages %}
+  <div class="lm-stage-card {% if loop.index == 1 %}lm-stage-active{% endif %}">
+    <div class="lm-stage-connector">
+      <div class="lm-stage-dot {% if loop.index == 1 %}lm-dot-active{% endif %}"></div>
+      {% if not loop.last %}<div class="lm-stage-line"></div>{% endif %}
+    </div>
+    <div class="lm-stage-body">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-3">
+        <div>
+          <span class="lm-stage-num">Stage {{ loop.index }}</span>
+          <h5 class="fw-800 mb-0">{{ stage.stage_name }}</h5>
+          <p class="text-muted small mb-0">{{ stage.description }}</p>
+        </div>
+        <span class="lm-meta-badge"><i class="bi bi-clock me-1"></i>~{{ stage.estimated_weeks }} weeks</span>
+      </div>
+
+      <!-- Topics -->
+      {% if stage.topics %}
+      <div class="mb-3">
+        <h6 class="fw-700 small text-uppercase text-muted mb-2">📚 Topics to Cover</h6>
+        <div class="d-flex flex-wrap gap-2">
+          {% for topic in stage.topics %}
+          <span class="lm-topic-tag">{{ topic }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="row g-3">
+        <!-- Resources -->
+        {% if stage.resources %}
+        <div class="col-md-4">
+          <h6 class="fw-700 small text-uppercase text-muted mb-2">🔗 Resources</h6>
+          <ul class="lm-resource-list">
+            {% for r in stage.resources %}
+            <li>
+              <span class="lm-resource-type lm-type-{{ r.type }}">{{ r.type }}</span>
+              <span>{{ r.title }}</span>
+              {% if r.provider %}<span class="text-muted small">· {{ r.provider }}</span>{% endif %}
+              {% if r.free %}<span class="lm-free-badge">FREE</span>{% endif %}
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Projects -->
+        {% if stage.projects %}
+        <div class="col-md-4">
+          <h6 class="fw-700 small text-uppercase text-muted mb-2">💻 Projects</h6>
+          <ul class="lm-project-list">
+            {% for p in stage.projects %}
+            <li><i class="bi bi-code-slash me-1 text-accent"></i>{{ p }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+
+        <!-- Certifications -->
+        {% if stage.certifications %}
+        <div class="col-md-4">
+          <h6 class="fw-700 small text-uppercase text-muted mb-2">🏆 Certifications</h6>
+          <ul class="lm-cert-list">
+            {% for c in stage.certifications %}
+            <li><i class="bi bi-award-fill me-1 text-warning"></i>{{ c }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Milestone -->
+      {% if stage.milestone %}
+      <div class="lm-milestone-box mt-3">
+        <i class="bi bi-flag-fill me-2 text-success"></i>
+        <strong>Milestone:</strong> {{ stage.milestone }}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Career Outcomes -->
+{% if roadmap.career_outcomes %}
+<div class="lm-roadmap-outcomes mt-4">
+  <h5 class="fw-800 mb-3"><i class="bi bi-briefcase-fill me-2 text-accent"></i>Career Outcomes</h5>
+  <div class="d-flex flex-wrap gap-2">
+    {% for outcome in roadmap.career_outcomes %}
+    <span class="lm-outcome-tag">{{ outcome }}</span>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if roadmap.next_steps %}
+<div class="lm-next-steps-card mt-4">
+  <h6 class="fw-700"><i class="bi bi-rocket-takeoff me-2 text-accent"></i>Next Steps</h6>
+  <p class="mb-0">{{ roadmap.next_steps }}</p>
+</div>
+{% endif %}

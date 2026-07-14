@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Courses — LearnMate{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-800 mb-1"><i class="bi bi-collection-play-fill me-2 text-accent"></i>Course Library</h4>
+      <p class="text-muted mb-0">{{ courses|length }} courses across multiple domains</p>
+    </div>
+    <a href="{{ url_for('chat.chat') }}" class="btn lm-btn-outline d-none d-md-block">
+      <i class="bi bi-robot me-1"></i>Get AI Recommendations
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" action="{{ url_for('courses.courses') }}" class="lm-filter-bar mb-4">
+    <div class="row g-2">
+      <div class="col-12 col-md-5">
+        <div class="input-group">
+          <span class="input-group-text lm-input-icon"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control lm-input" placeholder="Search courses, topics, tags..." value="{{ query }}"/>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <select name="domain" class="form-select lm-input">
+          <option value="">All Domains</option>
+          {% for d in domains %}
+          <option value="{{ d }}" {% if d == selected_domain %}selected{% endif %}>{{ d }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select name="level" class="form-select lm-input">
+          <option value="">All Levels</option>
+          <option value="beginner" {% if selected_level == 'beginner' %}selected{% endif %}>Beginner</option>
+          <option value="intermediate" {% if selected_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+          <option value="advanced" {% if selected_level == 'advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+      </div>
+      <div class="col-12 col-md-2 d-flex gap-2">
+        <button type="submit" class="btn lm-btn-primary flex-grow-1">Filter</button>
+        {% if query or selected_domain or selected_level %}
+        <a href="{{ url_for('courses.courses') }}" class="btn lm-btn-outline"><i class="bi bi-x-lg"></i></a>
+        {% endif %}
+      </div>
+    </div>
+  </form>
+
+  <!-- Course Grid -->
+  {% if courses %}
+  <div class="row g-4">
+    {% for course in courses %}
+    {% set progress = enrolled_map.get(course.id) %}
+    <div class="col-md-6 col-xl-4">
+      <div class="lm-course-card h-100">
+        <div class="lm-course-card-header">
+          <span class="lm-course-domain-tag">{{ course.domain }}</span>
+          <span class="lm-level-tag lm-level-{{ course.level }}">{{ course.level|title }}</span>
+        </div>
+        <div class="lm-course-card-body">
+          <h6 class="fw-700 lm-course-title">{{ course.title }}</h6>
+          <div class="text-muted small mb-2"><i class="bi bi-building me-1"></i>{{ course.provider }}</div>
+          <p class="text-muted small lm-course-desc">{{ (course.description or '')[:120] }}{% if course.description and course.description|length > 120 %}...{% endif %}</p>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <span class="small"><i class="bi bi-star-fill text-warning me-1"></i><strong>{{ course.rating }}</strong></span>
+            <span class="small text-muted"><i class="bi bi-clock me-1"></i>{{ course.duration_hours|int }}h</span>
+            <span class="small text-muted"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>+{{ course.xp_reward }} XP</span>
+          </div>
+
+          {% if progress %}
+            {% if progress.status == 'completed' %}
+            <div class="lm-enrolled-badge-success mb-2">
+              <i class="bi bi-check-circle-fill me-1"></i>Completed · +{{ course.xp_reward }} XP earned
+            </div>
+            {% else %}
+            <div class="mb-2">
+              <div class="d-flex justify-content-between small mb-1">
+                <span class="text-accent fw-600">In Progress</span>
+                <span>{{ progress.progress_pct }}%</span>
+              </div>
+              <div class="progress lm-mini-progress">
+                <div class="progress-bar lm-progress-fill" style="width:{{ progress.progress_pct }}%"></div>
+              </div>
+              <button class="btn lm-btn-sm-outline mt-2 lm-update-progress w-100"
+                      data-course-id="{{ course.id }}" data-current="{{ progress.progress_pct }}">
+                <i class="bi bi-pencil me-1"></i>Update Progress
+              </button>
+            </div>
+            {% endif %}
+            <button class="btn lm-btn-remove w-100 mt-1 lm-unenroll-btn" data-course-id="{{ course.id }}">
+              <i class="bi bi-trash3 me-1"></i>Remove Enrollment
+            </button>
+          {% else %}
+          <button class="btn lm-btn-primary w-100 lm-enroll-btn" data-course-id="{{ course.id }}">
+            <i class="bi bi-plus-circle me-1"></i>Enroll Now
+          </button>
+          {% endif %}
+        </div>
+        {% if course.url %}
+        <div class="lm-course-card-footer">
+          <a href="{{ course.url }}" target="_blank" rel="noopener" class="lm-link small">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Open Course
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="lm-empty-state py-5">
+    <i class="bi bi-search fs-1 text-muted"></i>
+    <h5 class="mt-3 fw-700">No courses found</h5>
+    <p class="text-muted">Try adjusting your filters or <a href="{{ url_for('courses.courses') }}" class="lm-link">clear all filters</a></p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Progress Modal (reused from dashboard) -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content lm-modal">
+      <div class="modal-header">
+        <h5 class="modal-title fw-700">Update Progress</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label fw-600 mb-3">How far have you progressed?</label>
+        <input type="range" class="form-range lm-range" id="progressRange" min="0" max="100" step="5" value="50"/>
+        <div class="text-center mt-2 fs-4 fw-700" id="progressDisplay">50%</div>
+        <input type="hidden" id="modalCourseId"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn lm-btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn lm-btn-primary" id="saveProgressBtn">
+          <i class="bi bi-check-circle me-1"></i>Save Progress
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Profile — LearnMate{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:900px">
+  <div class="row g-4">
+
+    <!-- Profile Card -->
+    <div class="col-lg-4">
+      <div class="lm-card p-4 text-center">
+        <div class="lm-avatar-xl mx-auto mb-3">
+          {{ (current_user.full_name or current_user.username)[0].upper() }}
+        </div>
+        <h5 class="fw-800 mb-1">{{ current_user.full_name or current_user.username }}</h5>
+        <div class="text-muted small mb-2">@{{ current_user.username }}</div>
+        <span class="lm-level-badge mb-3 d-inline-block">
+          <i class="bi bi-trophy-fill me-1 text-warning"></i>{{ current_user.level_badge }}
+        </span>
+        {% if current_user.bio %}
+        <p class="text-muted small">{{ current_user.bio }}</p>
+        {% endif %}
+
+        <!-- Stats -->
+        <div class="lm-profile-stats">
+          <div class="lm-profile-stat">
+            <div class="fw-800 fs-4">{{ current_user.total_xp }}</div>
+            <div class="text-muted small">Total XP</div>
+          </div>
+          <div class="lm-profile-stat">
+            <div class="fw-800 fs-4">{{ current_user.completed_courses|length }}</div>
+            <div class="text-muted small">Completed</div>
+          </div>
+          <div class="lm-profile-stat">
+            <div class="fw-800 fs-4 text-danger">{{ current_user.streak_days }}🔥</div>
+            <div class="text-muted small">Streak</div>
+          </div>
+        </div>
+
+        <hr/>
+        <div class="text-start">
+          <div class="lm-profile-info-row">
+            <i class="bi bi-envelope-fill text-accent"></i>
+            <span class="small">{{ current_user.email }}</span>
+          </div>
+          {% if current_user.career_goal %}
+          <div class="lm-profile-info-row">
+            <i class="bi bi-bullseye text-purple"></i>
+            <span class="small">{{ current_user.career_goal }}</span>
+          </div>
+          {% endif %}
+          {% if current_user.current_role %}
+          <div class="lm-profile-info-row">
+            <i class="bi bi-briefcase-fill text-blue"></i>
+            <span class="small">{{ current_user.current_role }}</span>
+          </div>
+          {% endif %}
+          <div class="lm-profile-info-row">
+            <i class="bi bi-graph-up text-green"></i>
+            <span class="small">{{ (current_user.skill_level or 'beginner')|title }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile -->
+    <div class="col-lg-8">
+      <div class="lm-card p-4">
+        <h6 class="fw-700 mb-4"><i class="bi bi-pencil-square me-2 text-accent"></i>Edit Profile</h6>
+        <form id="profileForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-600">Full Name</label>
+              <input type="text" name="full_name" class="form-control lm-input"
+                     value="{{ current_user.full_name or '' }}"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Current Role</label>
+              <input type="text" name="current_role" class="form-control lm-input"
+                     value="{{ current_user.current_role or '' }}" placeholder="e.g. Student, Developer"/>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Career Goal</label>
+              <select name="career_goal" class="form-select lm-input">
+                {% for goal in career_goals %}
+                <option value="{{ goal }}" {% if goal == current_user.career_goal %}selected{% endif %}>{{ goal }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Skill Level</label>
+              <select name="skill_level" class="form-select lm-input">
+                {% for val, label in skill_levels %}
+                <option value="{{ val }}" {% if val == current_user.skill_level %}selected{% endif %}>{{ label.split(' — ')[0] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Learning Style</label>
+              <select name="learning_style" class="form-select lm-input">
+                {% for val, label in learning_styles %}
+                <option value="{{ val }}" {% if val == current_user.learning_style %}selected{% endif %}>{{ label.split(' — ')[0] }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-600">Interests</label>
+              <input type="text" name="interests" class="form-control lm-input"
+                     value="{{ current_user.interests or '' }}" placeholder="e.g. Python, AI, cloud"/>
+            </div>
+            <div class="col-12">
+              <label class="form-label fw-600">Bio</label>
+              <textarea name="bio" class="form-control lm-input" rows="3">{{ current_user.bio or '' }}</textarea>
+            </div>
+          </div>
+          <button type="submit" class="btn lm-btn-primary mt-4">
+            <i class="bi bi-check-circle me-1"></i>Save Changes
+          </button>
+        </form>
+      </div>
+
+      <!-- Learning Progress Summary -->
+      <div class="lm-card mt-4 p-4">
+        <h6 class="fw-700 mb-3"><i class="bi bi-bar-chart-fill me-2 text-accent"></i>Learning Progress</h6>
+        {% set completed = current_user.completed_courses %}
+        {% set in_progress = current_user.in_progress_courses %}
+        {% if completed or in_progress %}
+          {% for prog in completed + in_progress %}
+          <div class="lm-activity-item">
+            <div class="lm-activity-icon lm-icon-{% if prog.status == 'completed' %}green{% else %}blue{% endif %}">
+              <i class="bi bi-{% if prog.status == 'completed' %}check-circle-fill{% else %}play-circle-fill{% endif %}"></i>
+            </div>
+            <div class="lm-activity-info">
+              <div class="fw-600 small">{{ prog.course.title }}</div>
+              <div class="text-muted small">{{ prog.status|replace('_', ' ')|title }}</div>
+            </div>
+            <div class="text-end">
+              <div class="fw-700 small">{{ prog.progress_pct }}%</div>
+              {% if prog.status == 'completed' %}
+              <span class="badge lm-badge-success small">✓</span>
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted text-center py-3">
+            <i class="bi bi-book fs-2"></i>
+            <p class="mt-2 mb-0">No courses enrolled yet. <a href="{{ url_for('courses.courses') }}" class="lm-link">Browse courses</a></p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const data = {};
+  new FormData(form).forEach((v, k) => data[k] = v);
+  const res = await fetch('/profile/update', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken()},
+    body: JSON.stringify(data),
+  });
+  if (res.ok) {
+    showToast('Profile updated successfully!', 'success');
+  } else {
+    showToast('Failed to update profile.', 'danger');
+  }
+});
+</script>
+{% endblock %}

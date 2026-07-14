@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — LearnMate{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+
+  <!-- Welcome Banner -->
+  <div class="lm-welcome-banner mb-4">
+    <div class="lm-welcome-left">
+      <h4 class="fw-800 mb-1">
+        👋 Welcome back, <span class="text-accent">{{ current_user.full_name or current_user.username }}</span>!
+      </h4>
+      <p class="text-muted mb-0">
+        {% if current_user.career_goal %}
+          Continuing your journey to become a <strong>{{ current_user.career_goal }}</strong>
+        {% else %}
+          Ready to learn something amazing today?
+        {% endif %}
+      </p>
+    </div>
+    <div class="lm-welcome-right">
+      <span class="lm-level-badge">
+        <i class="bi bi-trophy-fill me-1 text-warning"></i>{{ current_user.level_badge }}
+      </span>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    {% set stats = [
+      (completed, "Completed", "bi-check-circle-fill", "green"),
+      (in_progress, "In Progress", "bi-play-circle-fill", "blue"),
+      (current_user.total_xp, "Total XP", "bi-lightning-charge-fill", "yellow"),
+      (current_user.streak_days, "Day Streak 🔥", "bi-fire", "red"),
+    ] %}
+    {% for val, label, icon, color in stats %}
+    <div class="col-6 col-xl-3">
+      <div class="lm-stat-widget lm-stat-{{ color }}">
+        <i class="bi {{ icon }} lm-stat-icon"></i>
+        <div class="lm-stat-val">{{ val }}</div>
+        <div class="lm-stat-label">{{ label }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- XP Progress Bar -->
+  <div class="lm-card mb-4 p-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-700"><i class="bi bi-bar-chart-fill me-2 text-accent"></i>Progress to <strong>{{ next_milestone.badge }}</strong></span>
+      <span class="text-muted small">{{ xp }} / {{ next_milestone.threshold }} XP</span>
+    </div>
+    <div class="progress lm-progress-bar">
+      <div class="progress-bar lm-progress-fill" role="progressbar" style="width: {{ next_milestone.pct }}%"></div>
+    </div>
+    <div class="d-flex justify-content-between mt-1">
+      <small class="text-muted">{{ current_user.level_badge }}</small>
+      <small class="text-muted">{{ next_milestone.badge }}</small>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+
+      <!-- Recent Activity -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0 fw-700"><i class="bi bi-activity me-2"></i>Recent Activity</h6>
+          <a href="{{ url_for('courses.courses') }}" class="lm-link small">Browse all</a>
+        </div>
+        <div class="lm-card-body">
+          {% if recent %}
+            {% for progress in recent %}
+            <div class="lm-activity-item">
+              <div class="lm-activity-icon lm-icon-{% if progress.status == 'completed' %}green{% else %}blue{% endif %}">
+                <i class="bi bi-{% if progress.status == 'completed' %}check-circle-fill{% else %}play-circle-fill{% endif %}"></i>
+              </div>
+              <div class="lm-activity-info">
+                <div class="fw-600">{{ progress.course.title }}</div>
+                <div class="text-muted small">{{ progress.course.provider }} · {{ progress.course.level|title }}</div>
+              </div>
+              <div class="lm-activity-progress">
+                <div class="small text-muted mb-1">{{ progress.progress_pct }}%</div>
+                <div class="progress lm-mini-progress">
+                  <div class="progress-bar {% if progress.status == 'completed' %}bg-success{% else %}lm-progress-fill{% endif %}"
+                       style="width:{{ progress.progress_pct }}%"></div>
+                </div>
+              </div>
+              {% if progress.status == 'in_progress' %}
+              <button class="btn lm-btn-sm-outline ms-2 lm-update-progress"
+                      data-course-id="{{ progress.course_id }}"
+                      data-current="{{ progress.progress_pct }}">Update</button>
+              {% else %}
+              <span class="badge lm-badge-success ms-2">Done ✓</span>
+              {% endif %}
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="lm-empty-state">
+              <i class="bi bi-collection-play fs-1 text-muted"></i>
+              <p class="text-muted mt-2">No courses enrolled yet.</p>
+              <a href="{{ url_for('courses.courses') }}" class="btn lm-btn-primary btn-sm">Browse Courses</a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Recommended Courses -->
+      <div class="lm-card">
+        <div class="lm-card-header">
+          <h6 class="mb-0 fw-700"><i class="bi bi-stars me-2 text-warning"></i>Recommended For You</h6>
+          <a href="{{ url_for('courses.courses') }}" class="lm-link small">See all</a>
+        </div>
+        <div class="lm-card-body">
+          <div class="row g-3">
+            {% for course in recommended %}
+            <div class="col-md-6">
+              <div class="lm-course-mini-card">
+                <div class="lm-course-level-badge lm-level-{{ course.level }}">{{ course.level|title }}</div>
+                <h6 class="fw-700 mt-2 mb-1 lm-course-title">{{ course.title }}</h6>
+                <div class="text-muted small mb-2">{{ course.provider }}</div>
+                <div class="d-flex align-items-center justify-content-between">
+                  <span class="small"><i class="bi bi-star-fill text-warning me-1"></i>{{ course.rating }}</span>
+                  <button class="btn lm-btn-sm lm-enroll-btn" data-course-id="{{ course.id }}">
+                    <i class="bi bi-plus-circle me-1"></i>Enroll
+                  </button>
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+
+      <!-- Profile Summary -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header">
+          <h6 class="mb-0 fw-700"><i class="bi bi-person-fill me-2"></i>Your Profile</h6>
+          <a href="{{ url_for('profile.profile') }}" class="lm-link small">Edit</a>
+        </div>
+        <div class="lm-card-body">
+          <div class="text-center mb-3">
+            <div class="lm-avatar-lg mx-auto mb-2">{{ (current_user.full_name or current_user.username)[0].upper() }}</div>
+            <div class="fw-700">{{ current_user.full_name or current_user.username }}</div>
+            <div class="text-muted small">{{ current_user.email }}</div>
+          </div>
+          <div class="lm-profile-info-row">
+            <i class="bi bi-bullseye text-accent"></i>
+            <span>{{ current_user.career_goal or 'Not set' }}</span>
+          </div>
+          <div class="lm-profile-info-row">
+            <i class="bi bi-graph-up text-purple"></i>
+            <span>{{ (current_user.skill_level or 'beginner')|title }}</span>
+          </div>
+          <div class="lm-profile-info-row">
+            <i class="bi bi-lightbulb text-warning"></i>
+            <span>{{ (current_user.learning_style or 'Not set')|title }}</span>
+          </div>
+          {% if not current_user.career_goal %}
+          <a href="{{ url_for('profile.setup') }}" class="btn lm-btn-outline w-100 mt-3 btn-sm">
+            <i class="bi bi-pencil-square me-1"></i>Complete Profile
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="lm-card mb-4">
+        <div class="lm-card-header"><h6 class="mb-0 fw-700"><i class="bi bi-lightning-fill me-2 text-warning"></i>Quick Actions</h6></div>
+        <div class="lm-card-body d-grid gap-2">
+          <a href="{{ url_for('chat.chat') }}" class="btn lm-btn-outline text-start">
+            <i class="bi bi-chat-dots-fill me-2 text-accent"></i>Chat with AI Tutor
+          </a>
+          <a href="{{ url_for('roadmap.roadmap') }}" class="btn lm-btn-outline text-start">
+            <i class="bi bi-map-fill me-2 text-purple"></i>View My Roadmap
+          </a>
+          <a href="{{ url_for('assessment.assessment') }}" class="btn lm-btn-outline text-start">
+            <i class="bi bi-patch-check-fill me-2 text-green"></i>Take Assessment
+          </a>
+        </div>
+      </div>
+
+      <!-- AI Tip -->
+      <div class="lm-ai-tip-card">
+        <div class="lm-ai-tip-header">
+          <i class="bi bi-robot me-2"></i>AI Tip of the Day
+        </div>
+        <div class="lm-ai-tip-body">
+          <p class="mb-0 small">"Consistency beats intensity. Even 30 minutes of focused learning every day compounds into mastery over months. Keep your streak alive! 🔥"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress Update Modal -->
+<div class="modal fade" id="progressModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content lm-modal">
+      <div class="modal-header">
+        <h5 class="modal-title fw-700">Update Progress</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label fw-600 mb-3">How far have you progressed?</label>
+        <input type="range" class="form-range lm-range" id="progressRange" min="0" max="100" step="5" value="50"/>
+        <div class="text-center mt-2 fs-4 fw-700" id="progressDisplay">50%</div>
+        <input type="hidden" id="modalCourseId"/>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn lm-btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn lm-btn-primary" id="saveProgressBtn">
+          <i class="bi bi-check-circle me-1"></i>Save Progress
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

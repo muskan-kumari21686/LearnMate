@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}AI Chat — LearnMate{% endblock %}
+{% block content %}
+<div class="lm-chat-container">
+
+  <!-- Sidebar -->
+  <aside class="lm-chat-sidebar d-none d-lg-flex flex-column">
+    <div class="lm-chat-sidebar-header">
+      <div class="lm-logo-icon"><i class="bi bi-robot"></i></div>
+      <div>
+        <div class="fw-700">{{ agent_name }}</div>
+        <div class="small text-muted">Your AI Learning Companion</div>
+      </div>
+    </div>
+    <div class="lm-chat-sidebar-info">
+      <div class="lm-sidebar-badge bg-success text-white">
+        <i class="bi bi-circle-fill me-1" style="font-size:0.5rem"></i>Online
+      </div>
+    </div>
+    <div class="lm-chat-suggestions">
+      <div class="lm-suggestion-title">Suggested Prompts</div>
+      {% set prompts = [
+        ("bi-map-fill", "Create my learning roadmap"),
+        ("bi-collection-play-fill", "Recommend Python courses"),
+        ("bi-briefcase-fill", "What jobs can I get as a data scientist?"),
+        ("bi-patch-check-fill", "How do I improve my skills?"),
+        ("bi-graph-up-arrow", "What certifications should I get?"),
+        ("bi-lightbulb-fill", "Give me a study schedule"),
+      ] %}
+      {% for icon, text in prompts %}
+      <button class="lm-suggestion-btn" data-msg="{{ text }}">
+        <i class="bi {{ icon }} me-2"></i>{{ text }}
+      </button>
+      {% endfor %}
+    </div>
+    <div class="mt-auto p-3">
+      <button class="btn lm-btn-outline w-100 btn-sm" id="clearChatBtn">
+        <i class="bi bi-trash3 me-1"></i>Clear Chat
+      </button>
+    </div>
+  </aside>
+
+  <!-- Chat Main -->
+  <div class="lm-chat-main flex-grow-1 d-flex flex-column">
+    <!-- Chat Header -->
+    <div class="lm-chat-header">
+      <div class="d-flex align-items-center gap-3">
+        <div class="lm-logo-icon"><i class="bi bi-robot"></i></div>
+        <div>
+          <div class="fw-700">{{ agent_name }}</div>
+          <div class="small text-muted">
+            <span class="text-success">●</span> Powered by IBM watsonx.ai
+          </div>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <!-- Mobile suggestions toggle -->
+        <button class="btn btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebar">
+          <i class="bi bi-layout-sidebar-inset"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="lm-chat-messages" id="chatMessages">
+      <!-- Welcome message if no history -->
+      {% if not history %}
+      <div class="lm-msg lm-msg-assistant">
+        <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+        <div class="lm-msg-bubble">
+          <div class="lm-msg-content">
+            <strong>👋 Hello {{ current_user.full_name or current_user.username }}!</strong><br><br>
+            I'm <strong>{{ agent_name }}</strong>, your personalised AI learning companion!
+            {% if current_user.career_goal %}
+            I see you want to become a <strong>{{ current_user.career_goal }}</strong> — great goal!
+            {% endif %}
+            <br><br>
+            I can help you with:<br>
+            🗺️ <strong>Learning roadmaps</strong> tailored to your goals<br>
+            📚 <strong>Course recommendations</strong> from top platforms<br>
+            💼 <strong>Career guidance</strong> and industry insights<br>
+            🏆 <strong>Skill assessment</strong> and improvement tips<br><br>
+            What would you like to explore? Try asking me to <em>"Create my learning roadmap"</em>!
+          </div>
+          <div class="lm-msg-time">Just now · {{ agent_name }}</div>
+        </div>
+      </div>
+      {% else %}
+        {% for msg in history %}
+        <div class="lm-msg lm-msg-{{ msg.role }}">
+          {% if msg.role == 'assistant' %}
+          <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+          {% endif %}
+          <div class="lm-msg-bubble">
+            <div class="lm-msg-content lm-markdown">{{ msg.content }}</div>
+            <div class="lm-msg-time">{{ msg.timestamp.strftime('%H:%M') }}</div>
+          </div>
+          {% if msg.role == 'user' %}
+          <div class="lm-msg-avatar lm-user-avatar">{{ (current_user.full_name or current_user.username)[0].upper() }}</div>
+          {% endif %}
+        </div>
+        {% endfor %}
+      {% endif %}
+
+      <!-- Typing indicator (hidden by default) -->
+      <div class="lm-msg lm-msg-assistant lm-typing-indicator d-none" id="typingIndicator">
+        <div class="lm-msg-avatar"><i class="bi bi-robot"></i></div>
+        <div class="lm-msg-bubble">
+          <div class="lm-typing-dots"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="lm-chat-input-area">
+      <div class="lm-chat-input-wrapper">
+        <textarea id="chatInput" class="lm-chat-input" placeholder="Ask me anything about learning, courses, or your career..." rows="1"></textarea>
+        <button class="btn lm-btn-send" id="sendBtn" title="Send message">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </div>
+      <div class="lm-chat-footer-info">
+        <small class="text-muted">Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mobile Sidebar Offcanvas -->
+<div class="offcanvas offcanvas-start lm-offcanvas" tabindex="-1" id="mobileSidebar">
+  <div class="offcanvas-header">
+    <h5 class="offcanvas-title fw-700">Suggested Prompts</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body">
+    {% for icon, text in [("bi-map-fill","Create my learning roadmap"),("bi-collection-play-fill","Recommend Python courses"),("bi-briefcase-fill","Career guidance for data science"),("bi-patch-check-fill","How to improve my skills"),("bi-graph-up-arrow","Best certifications to get"),("bi-lightbulb-fill","Give me a study schedule")] %}
+    <button class="lm-suggestion-btn w-100 mb-2" data-msg="{{ text }}">
+      <i class="bi {{ icon }} me-2"></i>{{ text }}
+    </button>
+    {% endfor %}
+    <button class="btn lm-btn-outline w-100 mt-3" id="clearChatMobile">
+      <i class="bi bi-trash3 me-1"></i>Clear Chat
+    </button>
+  </div>
+</div>
+{% endblock %}

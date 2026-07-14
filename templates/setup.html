@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Setup Profile — LearnMate{% endblock %}
+{% block content %}
+<div class="container py-5" style="max-width:680px">
+  <div class="lm-card p-4 p-md-5">
+    <div class="text-center mb-4">
+      <div class="lm-logo-icon lm-logo-lg mx-auto mb-3"><i class="bi bi-person-gear-fill"></i></div>
+      <h2 class="fw-800">Set Up Your Profile</h2>
+      <p class="text-muted">Help us personalise your learning experience — takes 2 minutes!</p>
+    </div>
+
+    <!-- Progress steps -->
+    <div class="lm-setup-steps mb-4">
+      <div class="lm-step active" data-step="1"><span>1</span> Goals</div>
+      <div class="lm-step" data-step="2"><span>2</span> Skills</div>
+      <div class="lm-step" data-step="3"><span>3</span> Interests</div>
+    </div>
+
+    <form method="POST" action="{{ url_for('profile.setup') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+      <!-- Step 1: Career Goal -->
+      <div class="lm-setup-pane" data-pane="1">
+        <h5 class="fw-700 mb-3"><i class="bi bi-bullseye me-2 text-accent"></i>What's your career goal?</h5>
+        <div class="row g-2">
+          {% for goal in career_goals %}
+          <div class="col-6 col-md-4">
+            <input type="radio" class="btn-check" name="career_goal" id="goal_{{ loop.index }}" value="{{ goal }}"/>
+            <label class="btn lm-choice-btn w-100" for="goal_{{ loop.index }}">{{ goal }}</label>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-3">
+          <label class="form-label fw-600">Current Role (optional)</label>
+          <input type="text" name="current_role" class="form-control lm-input" placeholder="e.g. Student, Junior Developer, Marketing Manager"/>
+        </div>
+        <button type="button" class="btn lm-btn-primary mt-4 lm-next-step">Next <i class="bi bi-arrow-right ms-1"></i></button>
+      </div>
+
+      <!-- Step 2: Skill Level & Learning Style -->
+      <div class="lm-setup-pane d-none" data-pane="2">
+        <h5 class="fw-700 mb-3"><i class="bi bi-graph-up me-2 text-accent"></i>What's your current skill level?</h5>
+        <div class="row g-2 mb-4">
+          {% for val, label in skill_levels %}
+          <div class="col-12">
+            <input type="radio" class="btn-check" name="skill_level" id="level_{{ val }}" value="{{ val }}" {% if val == 'beginner' %}checked{% endif %}/>
+            <label class="btn lm-choice-btn w-100 text-start" for="level_{{ val }}">
+              <i class="bi bi-{% if val == 'beginner' %}1-circle{% elif val == 'intermediate' %}2-circle{% else %}3-circle{% endif %} me-2"></i>{{ label }}
+            </label>
+          </div>
+          {% endfor %}
+        </div>
+        <h5 class="fw-700 mb-3"><i class="bi bi-lightbulb me-2 text-accent"></i>How do you learn best?</h5>
+        <div class="row g-2">
+          {% for val, label in learning_styles %}
+          <div class="col-12 col-md-6">
+            <input type="radio" class="btn-check" name="learning_style" id="style_{{ val }}" value="{{ val }}" {% if val == 'mixed' %}checked{% endif %}/>
+            <label class="btn lm-choice-btn w-100 text-start" for="style_{{ val }}">{{ label }}</label>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="d-flex gap-2 mt-4">
+          <button type="button" class="btn lm-btn-outline lm-prev-step"><i class="bi bi-arrow-left me-1"></i> Back</button>
+          <button type="button" class="btn lm-btn-primary lm-next-step">Next <i class="bi bi-arrow-right ms-1"></i></button>
+        </div>
+      </div>
+
+      <!-- Step 3: Interests & Bio -->
+      <div class="lm-setup-pane d-none" data-pane="3">
+        <h5 class="fw-700 mb-3"><i class="bi bi-tags me-2 text-accent"></i>What are your interests?</h5>
+        <input type="text" name="interests" class="form-control lm-input mb-3"
+               placeholder="e.g. Python, data science, web development, AI, cloud computing"/>
+        <label class="form-label fw-600">Short Bio (optional)</label>
+        <textarea name="bio" class="form-control lm-input" rows="3"
+                  placeholder="Tell us a bit about yourself and your learning goals..."></textarea>
+        <div class="d-flex gap-2 mt-4">
+          <button type="button" class="btn lm-btn-outline lm-prev-step"><i class="bi bi-arrow-left me-1"></i> Back</button>
+          <button type="submit" class="btn lm-btn-primary">
+            <i class="bi bi-rocket-takeoff me-2"></i>Launch My Journey!
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Multi-step form logic
+  document.querySelectorAll('.lm-next-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const current = btn.closest('.lm-setup-pane');
+      const currentNum = parseInt(current.dataset.pane);
+      current.classList.add('d-none');
+      document.querySelector(`.lm-setup-pane[data-pane="${currentNum + 1}"]`).classList.remove('d-none');
+      document.querySelectorAll('.lm-step').forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.step) <= currentNum + 1);
+      });
+    });
+  });
+  document.querySelectorAll('.lm-prev-step').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const current = btn.closest('.lm-setup-pane');
+      const currentNum = parseInt(current.dataset.pane);
+      current.classList.add('d-none');
+      document.querySelector(`.lm-setup-pane[data-pane="${currentNum - 1}"]`).classList.remove('d-none');
+      document.querySelectorAll('.lm-step').forEach(s => {
+        s.classList.toggle('active', parseInt(s.dataset.step) <= currentNum - 1);
+      });
+    });
+  });
+</script>
+{% endblock %}

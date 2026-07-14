@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Learning Roadmap — LearnMate{% endblock %}
+{% block content %}
+<div class="container-fluid px-4 py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+      <h4 class="fw-800 mb-1"><i class="bi bi-map-fill me-2 text-purple"></i>My Learning Roadmap</h4>
+      <p class="text-muted mb-0">Your personalised path from beginner to expert</p>
+    </div>
+    <button class="btn lm-btn-primary" id="generateRoadmapBtn">
+      <i class="bi bi-magic me-2"></i>Generate New Roadmap
+    </button>
+  </div>
+
+  <!-- Generate Panel -->
+  <div class="lm-card mb-4 p-4" id="generatePanel" {% if roadmap %}style="display:none"{% endif %}>
+    <h6 class="fw-700 mb-3"><i class="bi bi-magic me-2 text-accent"></i>Generate Your Personalised Roadmap</h6>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label fw-600">Career Goal</label>
+        <input type="text" class="form-control lm-input" id="rmCareerGoal"
+               placeholder="e.g. Data Scientist, Full-Stack Developer"
+               value="{{ current_user.career_goal or '' }}"/>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600">Current Skill Level</label>
+        <select class="form-select lm-input" id="rmSkillLevel">
+          <option value="beginner" {% if current_user.skill_level == 'beginner' %}selected{% endif %}>Beginner</option>
+          <option value="intermediate" {% if current_user.skill_level == 'intermediate' %}selected{% endif %}>Intermediate</option>
+          <option value="advanced" {% if current_user.skill_level == 'advanced' %}selected{% endif %}>Advanced</option>
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label fw-600">Interests / Background</label>
+        <input type="text" class="form-control lm-input" id="rmInterests"
+               placeholder="e.g. Python, statistics, web dev"
+               value="{{ current_user.interests or '' }}"/>
+      </div>
+    </div>
+    <button class="btn lm-btn-primary mt-3" id="createRoadmapBtn">
+      <i class="bi bi-rocket-takeoff me-2"></i>Generate Roadmap
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div class="lm-roadmap-loading d-none" id="roadmapLoading">
+    <div class="lm-spinner-container">
+      <div class="lm-spinner"></div>
+      <p class="mt-3 fw-600">Generating your personalised roadmap with AI...</p>
+      <small class="text-muted">This may take a few seconds</small>
+    </div>
+  </div>
+
+  <!-- Roadmap Display -->
+  <div id="roadmapDisplay" {% if not roadmap %}class="d-none"{% endif %}>
+    {% if roadmap %}
+    {% include 'partials/roadmap_content.html' %}
+    {% endif %}
+  </div>
+
+  {% if not roadmap %}
+  <div class="lm-empty-state py-5" id="roadmapEmpty">
+    <i class="bi bi-map fs-1 text-muted"></i>
+    <h5 class="mt-3 fw-700">No roadmap yet</h5>
+    <p class="text-muted">Generate your personalised learning roadmap above to get started!</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Roadmap template for JS rendering -->
+<template id="roadmapTemplate">
+  <div class="lm-roadmap-header mb-4">
+    <h3 class="fw-800" id="rmTitle"></h3>
+    <p class="text-muted" id="rmGoal"></p>
+    <div class="lm-roadmap-meta d-flex gap-3 flex-wrap">
+      <span class="lm-meta-badge"><i class="bi bi-calendar3 me-1"></i><span id="rmWeeks"></span> weeks total</span>
+      <span class="lm-meta-badge"><i class="bi bi-layers me-1"></i><span id="rmStages"></span> stages</span>
+    </div>
+  </div>
+  <div class="lm-roadmap-stages" id="rmStagesList"></div>
+  <div class="lm-roadmap-outcomes" id="rmOutcomes"></div>
+  <div class="lm-roadmap-next-steps" id="rmNextSteps"></div>
+</template>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ROADMAP_DATA = {{ roadmap | tojson if roadmap else 'null' }};
+</script>
+{% endblock %}
